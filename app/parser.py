@@ -3,10 +3,12 @@
 # Core of the entire lib
 from pydantic import BaseModel
 
+from app.factory import FormatterFactory
 from app.formatters import BaseFormatter
-from factory import factory
+from factory import _factory
 
 def parse(model: BaseModel,
+
           custom_formatter: BaseFormatter = None,
           file_format: str = None,
           with_notes: bool = True) -> str:
@@ -19,14 +21,37 @@ def parse(model: BaseModel,
     :param with_notes: 是否包含注释。Whether to include notes.
     :return: 解析后的模板字符串。Parsed template string.
     """
-
+    # 我想把这部分抽象成一个类方便继承，但是还没想好怎么写
+    # I'm thinking bout making this a class but idk how is better yet
     # --- Initialize Formatter ---
     if custom_formatter is None:
-        if file_format is None:
-            raise ValueError("Either custom_formatter or file_format must be provided.")
-        if file_format not in factory.formatters:
-            raise ValueError(f"Unsupported file format: {file_format}.")
-        custom_formatter = factory.get_formatter(file_format)()
+        # all error handling happens in get_formatter()
+        custom_formatter = FormatterFactory.get_formatter(file_format)
 
     # --- Start Parsing ---
-    # TODO: Actually parse stuff
+    final_obj: list[str] = []
+    if not isinstance(model, BaseModel):
+        raise TypeError("model must be a pydantic BaseModel.")
+    for field_name, field_info in model.model_fields.items():
+        # --- Get Field Type ---
+        field_type = field_info.annotation
+
+        # How do i format these bs...?
+
+        # --- Get Field Default Value ---
+        field_default = field_info.default
+        field_default_factory = field_info.default_factory
+        # --- Get Field Description ---
+        field_description = field_info.description
+        # --- Get Field Examples ---
+        field_examples = field_info.examples
+
+        # I don't think we need those but I'll add them when needed
+        # --- Get Field Alias ---
+        # field_alias = field_info.alias
+        # field_alias_priority = field_info.alias_priority
+        # --- ...
+
+
+    return "\n".join(final_obj)
+
